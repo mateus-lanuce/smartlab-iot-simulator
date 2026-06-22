@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLab IoT - Dashboard de Gêmeos Digitais</title>
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Folha de Estilo -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glass-bg"></div>
+
+    <div class="app-container">
+        <!-- Cabeçalho -->
+        <header class="app-header">
+            <div class="header-title">
+                <h1><i class="fa-solid fa-microchip animate-pulse"></i> SmartLab <span class="gradient-text">IoT</span></h1>
+                <p>Monitoramento Distribuído & Gêmeos Digitais (Digital Twins)</p>
+            </div>
+            <div class="system-status">
+                <span class="status-indicator online" id="ws-status"><i class="fa-solid fa-circle"></i> Conectado</span>
+                <span class="last-update-timer" id="last-update-timer"><i class="fa-solid fa-arrows-rotate animate-spin"></i> Atualizado há --s</span>
+                <span class="server-time" id="clock">00:00:00</span>
+            </div>
+        </header>
+
+        <!-- Grade Principal -->
+        <main class="dashboard-grid">
+            <!-- Coluna Laboratório 1 -->
+            <section class="lab-card" id="lab-LAB1">
+                <div class="lab-header">
+                    <div class="lab-title-row">
+                        <h2>Laboratório 01 <span class="protocol-badge mqtt">MQTT</span></h2>
+                        <button class="btn-history-trigger" data-lab="LAB1" title="Ver Histórico de Uso"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
+                    </div>
+                    <!-- Seletor de Cenários -->
+                    <div class="scenario-selector">
+                        <button class="btn-scenario active" data-lab="LAB1" data-scenario="NORMAL" title="Cenário de Uso Normal">Normal</button>
+                        <button class="btn-scenario" data-lab="LAB1" data-scenario="PICO" title="Cenário de Prova / Pico de Uso">Prova</button>
+                        <button class="btn-scenario" data-lab="LAB1" data-scenario="FALHA" title="Simular Falha de Ar-Condicionado">Falha AC</button>
+                        <button class="btn-scenario" data-lab="LAB1" data-scenario="SOBRECARGA" title="Simular Sobrecarga Geral de CPU">Estresse</button>
+                        <button class="btn-scenario" data-lab="LAB1" data-scenario="ANOMALO" title="Simular Software Não Autorizado / Ataque">Anomalia</button>
+                    </div>
+                </div>
+
+                <!-- Métricas Consolidadas -->
+                <div class="lab-metrics">
+                    <div class="metric-box">
+                        <span class="metric-label">CPU Média</span>
+                        <span class="metric-value" id="LAB1-cpu-avg">0%</span>
+                        <div class="metric-bar-container"><div class="metric-bar" id="LAB1-cpu-bar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">RAM Média</span>
+                        <span class="metric-value" id="LAB1-ram-avg">0%</span>
+                        <div class="metric-bar-container"><div class="metric-bar" id="LAB1-ram-bar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Temp. Sala</span>
+                        <span class="metric-value" id="LAB1-temp-avg">22.0°C</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Consumo Total</span>
+                        <span class="metric-value" id="LAB1-energy">0.0 kW</span>
+                    </div>
+                </div>
+
+                <!-- Digital Twins dos PCs -->
+                <h3>Computadores (<span id="LAB1-pcs-count">0</span>/10 Online)</h3>
+                <div class="pc-grid" id="LAB1-pc-grid">
+                    <!-- Gerado dinamicamente pelo JS -->
+                </div>
+
+                <!-- Equipamentos Auxiliares -->
+                <h3>Infraestrutura</h3>
+                <div class="infra-row">
+                    <div class="infra-card" id="LAB1-ac-status">
+                        <div class="infra-icon"><i class="fa-solid fa-snowflake"></i></div>
+                        <div class="infra-details">
+                            <span class="infra-name">Ar-Condicionado</span>
+                            <span class="infra-value" id="LAB1-ac-value">Desligado</span>
+                        </div>
+                    </div>
+                    <div class="infra-card" id="LAB1-proj-status">
+                        <div class="infra-icon"><i class="fa-solid fa-video"></i></div>
+                        <div class="infra-details">
+                            <span class="infra-name">Projetor</span>
+                            <span class="infra-value" id="LAB1-proj-value">Desligado</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Coluna Laboratório 2 -->
+            <section class="lab-card" id="lab-LAB2">
+                <div class="lab-header">
+                    <div class="lab-title-row">
+                        <h2>Laboratório 02 <span class="protocol-badge coap">CoAP</span></h2>
+                        <button class="btn-history-trigger" data-lab="LAB2" title="Ver Histórico de Uso"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
+                    </div>
+                    <!-- Seletor de Cenários -->
+                    <div class="scenario-selector">
+                        <button class="btn-scenario active" data-lab="LAB2" data-scenario="NORMAL">Normal</button>
+                        <button class="btn-scenario" data-lab="LAB2" data-scenario="PICO">Prova</button>
+                        <button class="btn-scenario" data-lab="LAB2" data-scenario="FALHA">Falha AC</button>
+                        <button class="btn-scenario" data-lab="LAB2" data-scenario="SOBRECARGA">Estresse</button>
+                        <button class="btn-scenario" data-lab="LAB2" data-scenario="ANOMALO">Anomalia</button>
+                    </div>
+                </div>
+
+                <!-- Métricas Consolidadas -->
+                <div class="lab-metrics">
+                    <div class="metric-box">
+                        <span class="metric-label">CPU Média</span>
+                        <span class="metric-value" id="LAB2-cpu-avg">0%</span>
+                        <div class="metric-bar-container"><div class="metric-bar" id="LAB2-cpu-bar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">RAM Média</span>
+                        <span class="metric-value" id="LAB2-ram-avg">0%</span>
+                        <div class="metric-bar-container"><div class="metric-bar" id="LAB2-ram-bar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Temp. Sala</span>
+                        <span class="metric-value" id="LAB2-temp-avg">22.0°C</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Consumo Total</span>
+                        <span class="metric-value" id="LAB2-energy">0.0 kW</span>
+                    </div>
+                </div>
+
+                <!-- Digital Twins dos PCs -->
+                <h3>Computadores (<span id="LAB2-pcs-count">0</span>/10 Online)</h3>
+                <div class="pc-grid" id="LAB2-pc-grid">
+                    <!-- Gerado dinamicamente pelo JS -->
+                </div>
+
+                <!-- Equipamentos Auxiliares -->
+                <h3>Infraestrutura</h3>
+                <div class="infra-row">
+                    <div class="infra-card" id="LAB2-ac-status">
+                        <div class="infra-icon"><i class="fa-solid fa-snowflake"></i></div>
+                        <div class="infra-details">
+                            <span class="infra-name">Ar-Condicionado</span>
+                            <span class="infra-value" id="LAB2-ac-value">Desligado</span>
+                        </div>
+                    </div>
+                    <div class="infra-card" id="LAB2-proj-status">
+                        <div class="infra-icon"><i class="fa-solid fa-video"></i></div>
+                        <div class="infra-details">
+                            <span class="infra-name">Projetor</span>
+                            <span class="infra-value" id="LAB2-proj-value">Desligado</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Coluna Laboratório 3 -->
+            <section class="lab-card" id="lab-LAB3">
+                <div class="lab-header">
+                    <div class="lab-title-row">
+                        <h2>Laboratório 03 <span class="protocol-badge mqtt">MQTT</span></h2>
+                        <button class="btn-history-trigger" data-lab="LAB3" title="Ver Histórico de Uso"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
+                    </div>
+                    <!-- Seletor de Cenários -->
+                    <div class="scenario-selector">
+                        <button class="btn-scenario active" data-lab="LAB3" data-scenario="NORMAL">Normal</button>
+                        <button class="btn-scenario" data-lab="LAB3" data-scenario="PICO">Prova</button>
+                        <button class="btn-scenario" data-lab="LAB3" data-scenario="FALHA">Falha AC</button>
+                        <button class="btn-scenario" data-lab="LAB3" data-scenario="SOBRECARGA">Estresse</button>
+                        <button class="btn-scenario" data-lab="LAB3" data-scenario="ANOMALO">Anomalia</button>
+                    </div>
+                </div>
+
+                <!-- Métricas Consolidadas -->
+                <div class="lab-metrics">
+                    <div class="metric-box">
+                        <span class="metric-label">CPU Média</span>
+                        <span class="metric-value" id="LAB3-cpu-avg">0%</span>
+                        <div class="metric-bar-container"><div class="metric-bar" id="LAB3-cpu-bar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">RAM Média</span>
+                        <span class="metric-value" id="LAB3-ram-avg">0%</span>
+                        <div class="metric-bar-container"><div class="metric-bar" id="LAB3-ram-bar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Temp. Sala</span>
+                        <span class="metric-value" id="LAB3-temp-avg">22.0°C</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Consumo Total</span>
+                        <span class="metric-value" id="LAB3-energy">0.0 kW</span>
+                    </div>
+                </div>
+
+                <!-- Digital Twins dos PCs -->
+                <h3>Computadores (<span id="LAB3-pcs-count">0</span>/10 Online)</h3>
+                <div class="pc-grid" id="LAB3-pc-grid">
+                    <!-- Gerado dinamicamente pelo JS -->
+                </div>
+
+                <!-- Equipamentos Auxiliares -->
+                <h3>Infraestrutura</h3>
+                <div class="infra-row">
+                    <div class="infra-card" id="LAB3-ac-status">
+                        <div class="infra-icon"><i class="fa-solid fa-snowflake"></i></div>
+                        <div class="infra-details">
+                            <span class="infra-name">Ar-Condicionado</span>
+                            <span class="infra-value" id="LAB3-ac-value">Desligado</span>
+                        </div>
+                    </div>
+                    <div class="infra-card" id="LAB3-proj-status">
+                        <div class="infra-icon"><i class="fa-solid fa-video"></i></div>
+                        <div class="infra-details">
+                            <span class="infra-name">Projetor</span>
+                            <span class="infra-value" id="LAB3-proj-value">Desligado</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Rodapé com Log de Eventos e Detalhes do Dispositivo -->
+        <footer class="app-footer">
+            <!-- Painel de Log de Alertas em Tempo Real -->
+            <section class="alert-log-panel">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-bell-exclamation text-yellow animate-bounce"></i> Log de Alertas e Anomalias em Tempo Real</h3>
+                    <button class="btn-clear" id="clear-alerts"><i class="fa-solid fa-trash"></i> Limpar Painel</button>
+                </div>
+                <div class="alert-list-container">
+                    <div class="alert-list" id="alert-feed">
+                        <!-- Alertas populados via WS -->
+                        <div class="no-alerts-placeholder">Nenhum alerta crítico registrado no momento.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Painel do Inspetor de Gêmeo Digital (PC clicado) -->
+            <section class="twin-inspector-panel">
+                <h3><i class="fa-solid fa-eye-dropper"></i> Inspetor de Gêmeo Digital</h3>
+                <div id="inspector-placeholder" class="inspector-empty">
+                    <p>Clique em qualquer computador acima para inspecionar os detalhes do seu Digital Twin em tempo real.</p>
+                </div>
+                <div id="inspector-content" class="inspector-body hidden">
+                    <h4 id="inspect-id">LAB1-PC05</h4>
+                    <div class="inspector-metrics">
+                        <div class="inspect-metric">
+                            <span class="label">Uso de CPU</span>
+                            <span class="value" id="inspect-cpu">0%</span>
+                        </div>
+                        <div class="inspect-metric">
+                            <span class="label">Uso de RAM</span>
+                            <span class="value" id="inspect-ram">0%</span>
+                        </div>
+                        <div class="inspect-metric">
+                            <span class="label">Temperatura CPU</span>
+                            <span class="value" id="inspect-temp">0°C</span>
+                        </div>
+                        <div class="inspect-metric">
+                            <span class="label">Consumo de Rede</span>
+                            <span class="value" id="inspect-network">0 kbps</span>
+                        </div>
+                    </div>
+                    <div class="inspector-detail-row">
+                        <strong>Aplicação Rodando:</strong> <span id="inspect-app">Nenhuma</span>
+                    </div>
+                    <div class="inspector-detail-row">
+                        <strong>Status Operacional:</strong> <span class="badge" id="inspect-status">OCIOSO</span>
+                    </div>
+                    <div class="inspector-detail-row">
+                        <strong>Estado de Conexão:</strong> <span class="badge" id="inspect-conn">ONLINE</span>
+                    </div>
+                    <div class="inspector-detail-row">
+                        <small>Última atualização: <span id="inspect-update">--:--:--</span></small>
+                    </div>
+                </div>
+            </section>
+        </footer>
+    </div>
+
+    <!-- Modal do Histórico -->
+    <div class="modal-overlay hidden" id="history-modal">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock-rotate-left text-blue"></i> Histórico de Uso - <span id="history-lab-title">LAB1</span></h3>
+                <button class="btn-close" id="close-history-modal">&times;</button>
+            </div>
+            <div class="modal-filters">
+                <label for="history-interval">Intervalo:</label>
+                <select id="history-interval">
+                    <option value="10m">Últimos 10 minutos</option>
+                    <option value="1h">Última 1 hora</option>
+                    <option value="24h" selected>Últimas 24 horas</option>
+                    <option value="7d">Últimos 7 dias</option>
+                </select>
+                <button class="btn-refresh-history" id="refresh-history-btn"><i class="fa-solid fa-arrows-rotate"></i> Atualizar</button>
+            </div>
+            <div class="modal-body">
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Horário</th>
+                                <th>CPU Média</th>
+                                <th>RAM Média</th>
+                                <th>Temp. Média</th>
+                                <th>PCs Ativos</th>
+                                <th>Consumo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Inserido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Principal -->
+    <script src="app.js"></script>
+</body>
+</html>

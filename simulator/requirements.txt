@@ -1,0 +1,3 @@
+paho-mqtt==1.6.1
+aiocoap==0.4.7
+requests==2.31.0

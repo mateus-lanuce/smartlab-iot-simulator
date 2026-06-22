@@ -1,0 +1,182 @@
+version: '3.8'
+
+networks:
+  iot_network:
+    driver: bridge
+
+services:
+  # RabbitMQ Broker Central
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq_central
+    ports:
+      - "${RABBITMQ_AMQP_PORT}:5672"
+      - "${RABBITMQ_MGMT_PORT}:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+    networks:
+      - iot_network
+    restart: always
+
+  # Broker MQTT local do Laboratório 1
+  mosquitto-lab1:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto_lab1
+    ports:
+      - "${MQTT_LAB1_PORT}:1883"
+      - "${MQTT_LAB1_WS_PORT}:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - iot_network
+    restart: always
+
+  # Broker MQTT local do Laboratório 3
+  mosquitto-lab3:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto_lab3
+    ports:
+      - "${MQTT_LAB3_PORT}:1883"
+      - "${MQTT_LAB3_WS_PORT}:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - iot_network
+    restart: always
+
+  # Gateway de Borda LAB1 (Consome MQTT de mosquitto-lab1 -> Envia para RabbitMQ)
+  gateway-lab1:
+    build:
+      context: ./edge_gateway
+    container_name: gateway_lab1
+    environment:
+      - LAB_ID=LAB1
+      - PROTOCOL=MQTT
+      - MQTT_HOST=mosquitto-lab1
+      - MQTT_PORT=1883
+      - RABBITMQ_HOST=rabbitmq
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+      - AGGREGATION_WINDOW=${AGGREGATION_WINDOW}
+    depends_on:
+      - rabbitmq
+      - mosquitto-lab1
+    networks:
+      - iot_network
+    restart: always
+
+  # Gateway de Borda LAB2 (Servidor CoAP -> Envia para RabbitMQ)
+  gateway-lab2:
+    build:
+      context: ./edge_gateway
+    container_name: gateway_lab2
+    ports:
+      - "${COAP_LAB2_PORT}:5683/udp"
+    environment:
+      - LAB_ID=LAB2
+      - PROTOCOL=CoAP
+      - COAP_PORT=5683
+      - RABBITMQ_HOST=rabbitmq
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+      - AGGREGATION_WINDOW=${AGGREGATION_WINDOW}
+    depends_on:
+      - rabbitmq
+    networks:
+      - iot_network
+    restart: always
+
+  # Gateway de Borda LAB3 (Consome MQTT de mosquitto-lab3 -> Envia para RabbitMQ)
+  gateway-lab3:
+    build:
+      context: ./edge_gateway
+    container_name: gateway_lab3
+    environment:
+      - LAB_ID=LAB3
+      - PROTOCOL=MQTT
+      - MQTT_HOST=mosquitto-lab3
+      - MQTT_PORT=1883
+      - RABBITMQ_HOST=rabbitmq
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+      - AGGREGATION_WINDOW=${AGGREGATION_WINDOW}
+    depends_on:
+      - rabbitmq
+      - mosquitto-lab3
+    networks:
+      - iot_network
+    restart: always
+
+  # Simulador IoT do LAB1 (MQTT)
+  simulator-lab1:
+    build:
+      context: ./simulator
+    container_name: simulator_lab1
+    environment:
+      - LAB_ID=LAB1
+      - PROTOCOL=MQTT
+      - GATEWAY_HOST=mosquitto-lab1
+      - GATEWAY_PORT=1883
+      - INTERVAL=${SIMULATION_INTERVAL}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+    depends_on:
+      - gateway-lab1
+    networks:
+      - iot_network
+    restart: always
+
+  # Simulador IoT do LAB2 (CoAP)
+  simulator-lab2:
+    build:
+      context: ./simulator
+    container_name: simulator_lab2
+    environment:
+      - LAB_ID=LAB2
+      - PROTOCOL=CoAP
+      - GATEWAY_HOST=gateway-lab2
+      - GATEWAY_PORT=5683
+      - INTERVAL=${SIMULATION_INTERVAL}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+    depends_on:
+      - gateway-lab2
+    networks:
+      - iot_network
+    restart: always
+
+  # Simulador IoT do LAB3 (MQTT)
+  simulator-lab3:
+    build:
+      context: ./simulator
+    container_name: simulator_lab3
+    environment:
+      - LAB_ID=LAB3
+      - PROTOCOL=MQTT
+      - GATEWAY_HOST=mosquitto-lab3
+      - GATEWAY_PORT=1883
+      - INTERVAL=${SIMULATION_INTERVAL}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+    depends_on:
+      - gateway-lab3
+    networks:
+      - iot_network
+    restart: always
+
+  # Backend Central (Consome RabbitMQ -> SQLite + API REST + Dashboard Web)
+  backend:
+    build:
+      context: ./backend
+    container_name: backend_central
+    ports:
+      - "${BACKEND_PORT}:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+    volumes:
+      - backend_data:/app/data
+    depends_on:
+      - rabbitmq
+    networks:
+      - iot_network
+    restart: always
+
+volumes:
+  backend_data:
