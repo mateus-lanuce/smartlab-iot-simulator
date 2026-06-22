@@ -333,7 +333,10 @@ async def aggregation_loop():
                 "timestamp": now.isoformat() + "Z",
                 "temperatura_ambiente": ac.get("temperatura_ambiente"),
                 "ar_ligado": ac.get("ligado"),
-                "ar_modo": ac.get("modo")
+                "ar_modo": ac.get("modo"),
+                "co2_ppm": ac.get("co2_ppm", 450.0),
+                "luminosidade_lux": ac.get("luminosidade_lux", 500.0),
+                "ocupacao_pessoas": ac.get("ocupacao_pessoas", 0)
             }
             await publish_message(f"{LAB_ID}.environment", env_payload)
 

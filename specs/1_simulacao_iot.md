@@ -47,10 +47,14 @@ O ecossistema a ser simulado compreende os seguintes dispositivos distribuídos 
   "ligado": true,
   "temperatura_ambiente": 21.8,
   "consumo_kwh": 1.45,
-  "modo": "RESFRIAR"
+  "modo": "RESFRIAR",
+  "co2_ppm": 450.0,
+  "luminosidade_lux": 500.0,
+  "ocupacao_pessoas": 6
 }
 ```
 * **Modos de Operação (`modo`):** `RESFRIAR`, `VENTILAR`, `DESUMIDIFICAR`, `AQUECER`.
+* **Métricas Opcionais integradas:** `co2_ppm` (nível de CO2), `luminosidade_lux` (lux do ambiente), `ocupacao_pessoas` (pessoas estimadas).
 
 ### 2.3 Projetor Multimídia
 ```json

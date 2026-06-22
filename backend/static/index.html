@@ -85,6 +85,7 @@
                         <div class="infra-details">
                             <span class="infra-name">Ar-Condicionado</span>
                             <span class="infra-value" id="LAB1-ac-value">Desligado</span>
+                            <span class="infra-sub-value" id="LAB1-ac-sensors" style="font-size: 10px; color: #94a3b8; margin-top: 2px; font-weight: 500;"></span>
                         </div>
                     </div>
                     <div class="infra-card" id="LAB1-proj-status">
@@ -150,6 +151,7 @@
                         <div class="infra-details">
                             <span class="infra-name">Ar-Condicionado</span>
                             <span class="infra-value" id="LAB2-ac-value">Desligado</span>
+                            <span class="infra-sub-value" id="LAB2-ac-sensors" style="font-size: 10px; color: #94a3b8; margin-top: 2px; font-weight: 500;"></span>
                         </div>
                     </div>
                     <div class="infra-card" id="LAB2-proj-status">
@@ -215,6 +217,7 @@
                         <div class="infra-details">
                             <span class="infra-name">Ar-Condicionado</span>
                             <span class="infra-value" id="LAB3-ac-value">Desligado</span>
+                            <span class="infra-sub-value" id="LAB3-ac-sensors" style="font-size: 10px; color: #94a3b8; margin-top: 2px; font-weight: 500;"></span>
                         </div>
                     </div>
                     <div class="infra-card" id="LAB3-proj-status">
@@ -248,33 +251,12 @@
             <section class="twin-inspector-panel">
                 <h3><i class="fa-solid fa-eye-dropper"></i> Inspetor de Gêmeo Digital</h3>
                 <div id="inspector-placeholder" class="inspector-empty">
-                    <p>Clique em qualquer computador acima para inspecionar os detalhes do seu Digital Twin em tempo real.</p>
+                    <p>Clique em qualquer computador ou infraestrutura acima para inspecionar os detalhes do seu Gêmeo Digital em tempo real.</p>
                 </div>
                 <div id="inspector-content" class="inspector-body hidden">
                     <h4 id="inspect-id">LAB1-PC05</h4>
-                    <div class="inspector-metrics">
-                        <div class="inspect-metric">
-                            <span class="label">Uso de CPU</span>
-                            <span class="value" id="inspect-cpu">0%</span>
-                        </div>
-                        <div class="inspect-metric">
-                            <span class="label">Uso de RAM</span>
-                            <span class="value" id="inspect-ram">0%</span>
-                        </div>
-                        <div class="inspect-metric">
-                            <span class="label">Temperatura CPU</span>
-                            <span class="value" id="inspect-temp">0°C</span>
-                        </div>
-                        <div class="inspect-metric">
-                            <span class="label">Consumo de Rede</span>
-                            <span class="value" id="inspect-network">0 kbps</span>
-                        </div>
-                    </div>
-                    <div class="inspector-detail-row">
-                        <strong>Aplicação Rodando:</strong> <span id="inspect-app">Nenhuma</span>
-                    </div>
-                    <div class="inspector-detail-row">
-                        <strong>Status Operacional:</strong> <span class="badge" id="inspect-status">OCIOSO</span>
+                    <div id="inspect-dynamic-fields">
+                        <!-- Gerado dinamicamente via JS com base no tipo -->
                     </div>
                     <div class="inspector-detail-row">
                         <strong>Estado de Conexão:</strong> <span class="badge" id="inspect-conn">ONLINE</span>

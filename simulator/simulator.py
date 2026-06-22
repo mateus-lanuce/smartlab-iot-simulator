@@ -175,22 +175,41 @@ async def simulate_ac(ac_id):
         if CURRENT_SCENARIO == "FALHA":
             ligado = False
             modo = "VENTILAR"
-            consumo = 0.1  # Consumo mínimo em modo falha/ventoinha
+            consumo = 0.1
+            co2 = random.uniform(600.0, 800.0)
+            lux = random.uniform(400.0, 500.0)
+            ocupacao = random.randint(1, 3)
         elif CURRENT_SCENARIO == "PICO":
             ligado = True
             modo = "RESFRIAR"
-            consumo = 2.2  # Consumo máximo por alta carga térmica
-        else:
+            consumo = 2.2
+            co2 = random.uniform(1200.0, 1600.0)
+            lux = random.uniform(120.0, 180.0)
+            ocupacao = random.randint(10, 12)
+        elif CURRENT_SCENARIO == "SOBRECARGA":
             ligado = True
             modo = "RESFRIAR"
-            consumo = 1.4  # Consumo nominal estável
+            consumo = 1.8
+            co2 = random.uniform(850.0, 1100.0)
+            lux = random.uniform(350.0, 450.0)
+            ocupacao = random.randint(6, 10)
+        else: # NORMAL ou ANOMALO
+            ligado = True
+            modo = "RESFRIAR"
+            consumo = 1.4
+            co2 = random.uniform(400.0, 550.0)
+            lux = random.uniform(450.0, 550.0)
+            ocupacao = random.randint(3, 8)
 
         payload = {
             "id": ac_id,
             "ligado": ligado,
             "temperatura_ambiente": round(ROOM_TEMPERATURE, 1),
             "consumo_kwh": round(consumo + random.uniform(-0.05, 0.05), 2),
-            "modo": modo
+            "modo": modo,
+            "co2_ppm": round(co2, 1),
+            "luminosidade_lux": round(lux, 1),
+            "ocupacao_pessoas": ocupacao
         }
 
         await send_data(topic, path, payload)

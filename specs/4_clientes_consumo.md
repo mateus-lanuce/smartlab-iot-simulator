@@ -33,7 +33,7 @@ O backend central expõe rotas HTTP REST para consultas sob demanda efetuadas pe
 ### Endpoints Detalhados
 
 #### 1. Estado Atual do Laboratório
-* **Rota:** `GET /api/labs/{lab_id}/status`
+* **Rota:** `GET /labs/{lab_id}/status`
 * **Descrição:** Retorna as médias atuais do laboratório e os estados resumidos dos seus dispositivos.
 * **Exemplo de Resposta (JSON):**
   ```json
@@ -50,8 +50,8 @@ O backend central expõe rotas HTTP REST para consultas sob demanda efetuadas pe
   ```
 
 #### 2. Histórico de Telemetria do Laboratório
-* **Rota:** `GET /api/labs/{lab_id}/historico`
-* **Parâmetros Query:** `intervalo` (padrão `24h`, aceita `1h`, `6h`, `12h`)
+* **Rota:** `GET /labs/{lab_id}/historico`
+* **Parâmetros Query:** `intervalo` (padrão `24h`, aceita `10m`, `1h`, `24h`, `7d`)
 * **Descrição:** Retorna série temporal de métricas para gráficos e relatórios.
 * **Exemplo de Resposta (JSON):**
   ```json
@@ -62,8 +62,8 @@ O backend central expõe rotas HTTP REST para consultas sob demanda efetuadas pe
   ```
 
 #### 3. Digital Twin de um Dispositivo
-* **Rota:** `GET /api/twins/{device_id}`
-* **Descrição:** Retorna o estado completo e histórico de um dispositivo específico.
+* **Rota:** `GET /twins/{device_id}`
+* **Descrição:** Retorna o estado completo e histórico de um dispositivo específico (PCs, Ar-Condicionado ou Projetor).
 * **Exemplo de Resposta (JSON):**
   ```json
   {
@@ -84,7 +84,7 @@ O backend central expõe rotas HTTP REST para consultas sob demanda efetuadas pe
   ```
 
 #### 4. Log de Alertas Ativos
-* **Rota:** `GET /api/alerts`
+* **Rota:** `GET /alerts`
 * **Descrição:** Lista as últimas ocorrências de falhas e avisos.
 
 ---
@@ -109,4 +109,5 @@ Será desenvolvida uma página web estática e moderna (Single Page Application 
 1. **Grid de Laboratórios:** Três colunas (uma para cada LAB) mostrando a média de CPU, RAM, temperatura da sala e contagem de alertas.
 2. **Visualização de Dispositivos (Digital Twins):** Grid visual com 10 computadores por laboratório (representados por pequenos boxes ou ícones que mudam de cor dinamicamente com base no estado e conectividade).
 3. **Seção de Alertas em Tempo Real:** Painel dinâmico inferior estilo *ticker* ou feed de logs atualizado via WebSockets (servidor FastAPI websocket na rota `/ws/alerts`) ou por polling curto de HTTP GET a cada 2 segundos.
-4. **Controle de Cenários (Bônus):** Botões para ativar diretamente cenários de simulação no backend via chamadas REST (`POST /api/simulation/scenario/{id}`).
+4. **Controle de Cenários (Bônus):** Botões para ativar diretamente cenários de simulação no backend via chamadas REST (`POST /api/simulation/scenario`).
+5. **Gêmeo Digital de Infraestrutura:** Cartões de Ar-Condicionado e Projetor clicáveis na tela. Ao serem selecionados, alteram dinamicamente a área do Inspetor de Gêmeos Digitais para exibir dados específicos (ex: CO2, luminosidade, ocupação no AC; tempo de uso, temperatura interna, entrada de vídeo no Projetor).

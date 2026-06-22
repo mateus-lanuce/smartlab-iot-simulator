@@ -43,13 +43,30 @@ function buildGrids() {
 async function selectDevice(deviceId) {
     // Remove seleção anterior
     if (selectedDeviceId) {
-        const prevSquare = document.getElementById(`square-${selectedDeviceId}`);
-        if (prevSquare) prevSquare.classList.remove("selected");
+        let prevElement = document.getElementById(`square-${selectedDeviceId}`);
+        if (!prevElement) {
+            const parts = selectedDeviceId.split("-");
+            if (parts.length === 2) {
+                const lab = parts[0];
+                const type = parts[1].startsWith("AC") ? "ac" : "proj";
+                prevElement = document.getElementById(`${lab}-${type}-status`);
+            }
+        }
+        if (prevElement) prevElement.classList.remove("selected");
     }
 
     selectedDeviceId = deviceId;
-    const currentSquare = document.getElementById(`square-${deviceId}`);
-    if (currentSquare) currentSquare.classList.add("selected");
+    
+    let currentElement = document.getElementById(`square-${deviceId}`);
+    if (!currentElement) {
+        const parts = deviceId.split("-");
+        if (parts.length === 2) {
+            const lab = parts[0];
+            const type = parts[1].startsWith("AC") ? "ac" : "proj";
+            currentElement = document.getElementById(`${lab}-${type}-status`);
+        }
+    }
+    if (currentElement) currentElement.classList.add("selected");
 
     // Exibe painel
     document.getElementById("inspector-placeholder").classList.add("hidden");
@@ -58,7 +75,7 @@ async function selectDevice(deviceId) {
     await updateInspectorDetails(deviceId);
 }
 
-// Busca detalhes do Digital Twin e atualiza o painel do inspetor
+// Busca detalhes do Gêmeo Digital e atualiza o painel do inspetor
 async function updateInspectorDetails(deviceId) {
     if (selectedDeviceId !== deviceId) return;
 
@@ -68,20 +85,83 @@ async function updateInspectorDetails(deviceId) {
             const data = await response.json();
             
             document.getElementById("inspect-id").textContent = data.id;
+            const container = document.getElementById("inspect-dynamic-fields");
+            container.innerHTML = ""; // Limpa
             
-            // PC
+            let html = "";
             if (data.tipo === "PC") {
-                document.getElementById("inspect-cpu").textContent = `${data.metrics.cpu || 0}%`;
-                document.getElementById("inspect-ram").textContent = `${data.metrics.ram || 0}%`;
-                document.getElementById("inspect-temp").textContent = `${data.metrics.temperatura || 0}°C`;
-                document.getElementById("inspect-network").textContent = `${data.metrics.rede_kbps || 0} kbps`;
-                document.getElementById("inspect-app").textContent = data.metrics.aplicacao || "Nenhuma";
+                html = `
+                    <div class="inspector-metrics">
+                        <div class="inspect-metric">
+                            <span class="label">Uso de CPU</span>
+                            <span class="value">${data.metrics.cpu || 0}%</span>
+                        </div>
+                        <div class="inspect-metric">
+                            <span class="label">Uso de RAM</span>
+                            <span class="value">${data.metrics.ram || 0}%</span>
+                        </div>
+                        <div class="inspect-metric">
+                            <span class="label">Temperatura CPU</span>
+                            <span class="value">${data.metrics.temperatura || 0}°C</span>
+                        </div>
+                        <div class="inspect-metric">
+                            <span class="label">Consumo de Rede</span>
+                            <span class="value">${data.metrics.rede_kbps || 0} kbps</span>
+                        </div>
+                    </div>
+                    <div class="inspector-detail-row" style="margin-top: 10px;">
+                        <strong>Aplicação Rodando:</strong> <span>${data.metrics.aplicacao || "Nenhuma"}</span>
+                    </div>
+                    <div class="inspector-detail-row">
+                        <strong>Status Operacional:</strong> <span class="badge ${data.status.toLowerCase()}">${data.status}</span>
+                    </div>
+                `;
+            } else if (data.tipo === "AR_CONDICIONADO") {
+                const statusClass = data.status === "LIGADO" ? "online" : "offline";
+                html = `
+                    <div class="inspector-metrics">
+                        <div class="inspect-metric">
+                            <span class="label">Temp. Ambiente</span>
+                            <span class="value">${data.metrics.temperatura_ambiente || 22.0}°C</span>
+                        </div>
+                        <div class="inspect-metric">
+                            <span class="label">Consumo de Energia</span>
+                            <span class="value">${data.metrics.consumo_kwh || 0.0} kWh</span>
+                        </div>
+                    </div>
+                    <div class="inspector-detail-row" style="margin-top: 10px;">
+                        <strong>Modo de Operação:</strong> <span>${data.metrics.modo || "Nenhum"}</span>
+                    </div>
+                    <div class="inspector-detail-row">
+                        <strong>Estado:</strong> <span class="badge ${statusClass}">${data.status}</span>
+                    </div>
+                `;
+            } else if (data.tipo === "PROJETOR") {
+                const statusClass = data.status === "LIGADO" ? "online" : "offline";
+                html = `
+                    <div class="inspector-metrics">
+                        <div class="inspect-metric">
+                            <span class="label">Temp. Interna</span>
+                            <span class="value">${data.metrics.temperatura_interna || 0.0}°C</span>
+                        </div>
+                        <div class="inspect-metric">
+                            <span class="label">Consumo Energético</span>
+                            <span class="value">${data.metrics.consumo_kwh || 0.0} kWh</span>
+                        </div>
+                    </div>
+                    <div class="inspector-detail-row" style="margin-top: 10px;">
+                        <strong>Tempo de Uso:</strong> <span>${data.metrics.tempo_uso_minutos || 0} minutos</span>
+                    </div>
+                    <div class="inspector-detail-row">
+                        <strong>Entrada de Vídeo Ativa:</strong> <span>${data.metrics.entrada_video || "Nenhuma"}</span>
+                    </div>
+                    <div class="inspector-detail-row">
+                        <strong>Estado de Funcionamento:</strong> <span class="badge ${statusClass}">${data.status}</span>
+                    </div>
+                `;
             }
             
-            // Status
-            const statusBadge = document.getElementById("inspect-status");
-            statusBadge.textContent = data.status;
-            statusBadge.className = `badge ${data.status.toLowerCase()}`;
+            container.innerHTML = html;
             
             // Conectividade
             const connBadge = document.getElementById("inspect-conn");
@@ -205,6 +285,19 @@ function handleStatusUpdate(status) {
             if (card && value) {
                 const ligado = device.ligado;
                 value.textContent = ligado ? `Ligado (${device.temperatura_ambiente}°C)` : "Desligado";
+                
+                const sensorsSpan = document.getElementById(`${labId}-ac-sensors`);
+                if (sensorsSpan) {
+                    if (ligado) {
+                        const co2 = Math.round(device.co2_ppm || 450);
+                        const lux = Math.round(device.luminosidade_lux || 500);
+                        const ocup = device.ocupacao_pessoas || 0;
+                        sensorsSpan.textContent = `CO2: ${co2}ppm | Lum: ${lux}lx | Ocup: ${ocup}p`;
+                    } else {
+                        sensorsSpan.textContent = "";
+                    }
+                }
+                
                 if (ligado) {
                     card.classList.add("active", "ac-card");
                 } else {
@@ -283,15 +376,40 @@ function connectWS() {
                 }
                 break;
 
-            case "environment":
+            case "environment": {
                 // Atualiza a temperatura ambiente dinamicamente na UI
                 const tempLabel = document.getElementById(`${msg.data.lab_id}-temp-avg`);
                 if (tempLabel) {
                     tempLabel.textContent = `${msg.data.temperatura_ambiente}°C`;
                 }
+                // Atualiza card de AC e indicadores de sensores ambientais adicionais
+                const lab_id = msg.data.lab_id;
+                const acValue = document.getElementById(`${lab_id}-ac-value`);
+                const acCard = document.getElementById(`${lab_id}-ac-status`);
+                const acSensors = document.getElementById(`${lab_id}-ac-sensors`);
+                if (acValue && acCard) {
+                    const ligado = msg.data.ar_ligado;
+                    acValue.textContent = ligado ? `Ligado (${msg.data.temperatura_ambiente}°C)` : "Desligado";
+                    if (acSensors) {
+                        if (ligado) {
+                            const co2 = Math.round(msg.data.co2_ppm || 450);
+                            const lux = Math.round(msg.data.luminosidade_lux || 500);
+                            const ocup = msg.data.ocupacao_pessoas || 0;
+                            acSensors.textContent = `CO2: ${co2}ppm | Lum: ${lux}lx | Ocup: ${ocup}p`;
+                        } else {
+                            acSensors.textContent = "";
+                        }
+                    }
+                    if (ligado) {
+                        acCard.classList.add("active", "ac-card");
+                    } else {
+                        acCard.classList.remove("active", "ac-card");
+                    }
+                }
                 break;
+            }
                 
-            case "scenario_change":
+            case "scenario_change": {
                 const { lab_id, scenario } = msg.data;
                 document.querySelectorAll(`.btn-scenario[data-lab="${lab_id}"]`).forEach(btn => {
                     btn.classList.remove("active");
@@ -300,6 +418,7 @@ function connectWS() {
                     }
                 });
                 break;
+            }
         }
     };
 
@@ -429,6 +548,18 @@ window.addEventListener("DOMContentLoaded", () => {
     startLastUpdateTimer();
     connectWS();
     loadRecentAlerts();
+
+    // Registra cliques para Ar-condicionado e Projetor
+    labs.forEach(labId => {
+        const acCard = document.getElementById(`${labId}-ac-status`);
+        if (acCard) {
+            acCard.addEventListener("click", () => selectDevice(`${labId}-AC01`));
+        }
+        const projCard = document.getElementById(`${labId}-proj-status`);
+        if (projCard) {
+            projCard.addEventListener("click", () => selectDevice(`${labId}-PROJ01`));
+        }
+    });
 
     // Registra cliques dos triggers de histórico
     document.querySelectorAll(".btn-history-trigger").forEach(button => {

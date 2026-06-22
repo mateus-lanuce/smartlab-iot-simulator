@@ -25,7 +25,9 @@ Para evitar sobrecarregar o RabbitMQ e o backend central com pings brutos a cada
    * `temperatura_media`: Média da temperatura dos processadores.
    * `pcs_ativos`: Contagem de computadores com estado `"ATIVO"` ou `"EM_PROVA"`.
    * `energia_total_kwh`: Soma de consumo elétrico (PCs + Ar-Condicionado + Projetor).
+   * `co2_ppm`, `luminosidade_lux`, `ocupacao_pessoas`: Sensores ambientais opcionais repassados do ar-condicionado para o payload de ambiente.
 3. **Payload Consolidado:** O Gateway publica uma única mensagem agregada para a fila de status no RabbitMQ central.
+   *(E gera payloads adicionais para a fila de energia e environment).*
    
 ```json
 {

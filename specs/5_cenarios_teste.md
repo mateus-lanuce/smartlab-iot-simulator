@@ -178,3 +178,6 @@ Conforme as observações do PDF, a apresentação exige execução em no mínim
 ### Procedimento:
 * Na Máquina 2, os Gateways de Borda e Simuladores devem ser configurados para apontar o `RABBITMQ_HOST` para o endereço IP local da Máquina 1 (ex: `192.168.1.50`), garantindo que as mensagens de telemetria agregadas atravessem a rede física e cheguem ao backend.
 * O Docker Compose da Máquina 2 será iniciado omitindo os serviços `rabbitmq` e `backend`, conectando-se remotamente ao host da Máquina 1.
+
+### 5. Facilitação via Makefile
+Para facilitar a execução dos contêineres e testes de CLI em ambiente distribuído ou local, disponibilizou-se o `Makefile` na raiz contendo atalhos como `make up`, `make down`, `make logs`, `make cli-lab1`, `make cli-lab3` e `make clean`.

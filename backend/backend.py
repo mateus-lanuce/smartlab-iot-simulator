@@ -251,7 +251,10 @@ def rabbitmq_consumer():
                     # Atualiza o Digital Twin do Ar-Condicionado
                     ac_metrics = {
                         "temperatura_ambiente": temp_amb,
-                        "modo": payload.get("ar_modo")
+                        "modo": payload.get("ar_modo"),
+                        "co2_ppm": payload.get("co2_ppm", 450.0),
+                        "luminosidade_lux": payload.get("luminosidade_lux", 500.0),
+                        "ocupacao_pessoas": payload.get("ocupacao_pessoas", 0)
                     }
                     update_digital_twin_in_db(
                         device_id=f"{lab_id}-AC01",
@@ -306,7 +309,10 @@ def rabbitmq_consumer():
                             dev_metrics = {
                                 "temperatura_ambiente": dev.get("temperatura_ambiente"),
                                 "consumo_kwh": dev.get("consumo_kwh"),
-                                "modo": dev.get("modo")
+                                "modo": dev.get("modo"),
+                                "co2_ppm": dev.get("co2_ppm", 450.0),
+                                "luminosidade_lux": dev.get("luminosidade_lux", 500.0),
+                                "ocupacao_pessoas": dev.get("ocupacao_pessoas", 0)
                             }
                         else:  # PROJ
                             dev_type = "PROJETOR"

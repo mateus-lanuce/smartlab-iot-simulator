@@ -80,7 +80,13 @@ def on_message(client, userdata, msg):
         elif "temperatura_ambiente" in payload:
             temp = payload.get("temperatura_ambiente")
             ligado = "LIGADO" if payload.get("ligado") else "DESLIGADO"
-            print(f"[{time_str}] {Fore.BLACK}{Style.BRIGHT}[TELEMETRIA]{Style.RESET_ALL} {device_id} -> Ar: {ligado}, Temp Ambiente: {temp}°C")
+            co2 = payload.get("co2_ppm", 450.0)
+            lux = payload.get("luminosidade_lux", 500.0)
+            ocup = payload.get("ocupacao_pessoas", 0)
+            print(
+                f"[{time_str}] {Fore.BLACK}{Style.BRIGHT}[TELEMETRIA]{Style.RESET_ALL} {device_id} -> "
+                f"Ar: {ligado}, Temp Ambiente: {temp}°C, CO2: {co2} ppm, Luminosidade: {lux} lux, Ocupação: {ocup} pessoas"
+            )
         # Projetor
         elif "tempo_uso_minutos" in payload:
             ligado = "LIGADO" if payload.get("ligado") else "DESLIGADO"
