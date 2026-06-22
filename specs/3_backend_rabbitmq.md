@@ -75,20 +75,44 @@ CREATE TABLE IF NOT EXISTS lab_statistics (
 
 ---
 
-## 3. Microsserviços e Processamento de Eventos
+## 3. Arquitetura de Microsserviços do Backend
 
-O Backend rodará workers em threads ou processos assíncronos que consomem as filas do RabbitMQ e aplicam a inteligência de negócios.
+O backend é decomposto em **4 microsserviços independentes** operando de forma autônoma e colaborando via mensageria e persistência compartilhada em disco:
 
-### 3.1 Gerenciamento do Ciclo de Vida dos Digital Twins
-* Ao receber qualquer mensagem de status/telemetria, o worker atualiza a tabela `digital_twins`.
-* **Heartbeat / Checagem Online:** Uma thread periódica (a cada 30 segundos) varre os Digital Twins e marca como `online = False` qualquer dispositivo cuja coluna `last_update` seja superior a 20 segundos atrás, gerando um evento na tabela `events_history` com tipo `CONECTIVIDADE` e severidade `WARNING`.
+### 3.1 API Gateway / Central Web Service (`backend_api.py`)
+* **Responsabilidade:** Interface externa REST (HTTP) e em tempo real (WebSockets).
+* **Comportamento:**
+  * Expõe endpoints públicos `/labs/...`, `/twins/...` e `/alerts`.
+  * Mantém conexões WebSocket na rota `/ws`.
+  * Assina uma fila temporária exclusiva com routing key `#` para capturar todos os eventos e transmiti-los aos WebSockets em tempo real.
+  * Serve os arquivos do Dashboard estático em `/static`.
 
-### 3.2 Lógica de Correlação e Geração de Alertas Inteligentes
-Além das anomalias simples detectadas na borda, o backend executa correlações de eventos complexas:
+### 3.2 Twin & Statistics Worker (`worker_twin.py`)
+* **Responsabilidade:** Atualização dos Digital Twins e cálculo de estatísticas consolidadas.
+* **Comportamento:**
+  * Consome as filas `status_queue`, `energy_queue` e `environment_queue`.
+  * Grava os dados na tabela `digital_twins` e `lab_statistics`.
+  * **Correlação Complexa de Eventos (CEP):**
+    1. *Risco de Colapso Térmico:* Se Temp Ambiente > 28°C E CPU média > 75%, publica um alerta `{lab_id}.alert` no RabbitMQ.
+    2. *Ineficiência Energética:* Se PCs ativos = 0 E AC/PROJ ligado=True por mais de 10m, publica `{lab_id}.alert` no RabbitMQ.
 
-1. **Risco de Colapso Térmico (Fila `environment` + `status`):**
-   * *Correlação:* Se a temperatura do laboratório estiver subindo progressivamente (> 28°C) E a média de CPU do laboratório estiver alta (> 75%), gera um alerta inteligente crítico: `"Risco iminente de colapso de hardware devido à falha de resfriamento em alta carga"`.
-2. **Ineficiência Energética (Fila `energy` + `status`):**
-   * *Correlação:* Se o Ar-Condicionado ou o Projetor estiverem ativos, mas a ocupação do laboratório for zero (PCs ativos = 0 por mais de 10 minutos), gera um alerta de eficiência: `"Dispositivo de alto consumo ativo em laboratório ocioso"`.
-3. **Pico Coletivo de Carga:**
-   * *Correlação:* Se > 80% das máquinas do laboratório mudarem o estado para `"EM_PROVA"` ao mesmo tempo, ajusta automaticamente as médias móveis de carga e notifica o painel.
+### 3.3 Alerts & Events Worker (`worker_alerts.py`)
+* **Responsabilidade:** Persistência transacional e catalogação de incidentes.
+* **Comportamento:**
+  * Consome a fila `alerts_queue`.
+  * Insere os registros na tabela `events_history` do SQLite central.
+
+### 3.4 Heartbeat & Connectivity Monitor (`service_monitor.py`)
+* **Responsabilidade:** Varredura periódica de inatividade e checagem de timeout.
+* **Comportamento:**
+  * Roda a cada 10s consultando a tabela `digital_twins`.
+  * Se `last_update` de um twin online for superior a 20s atrás, marca `online = 0` no banco e publica um alerta crítico `QUEDA_CONEXAO` no RabbitMQ com chave de roteamento `{lab_id}.alert`.
+
+---
+
+## 4. Persistência Compartilhada Concorrente (SQLite WAL)
+
+Os microsserviços acessam simultaneamente o mesmo arquivo SQLite (`database.db`) no volume Docker compartilhado. Para evitar conflitos de bloqueio de escrita (database locks), as conexões seguem as seguintes diretrizes:
+1. **Modo WAL (Write-Ahead Logging) Ativado:** Permite múltiplos leitores concorrentes enquanto uma escrita está em andamento.
+2. **Timeout Estendido (15s):** As conexões esperam até 15s pela liberação de travas de escrita antes de falhar.
+3. **Desacoplamento de Escritas:** Cada tabela possui escritas efetuadas preferencialmente por um único microsserviço dedicadamente.

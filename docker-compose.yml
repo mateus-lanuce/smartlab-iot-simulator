@@ -159,13 +159,68 @@ services:
       - iot_network
     restart: always
 
-  # Backend Central (Consome RabbitMQ -> SQLite + API REST + Dashboard Web)
+  # Backend Central (API Gateway / REST / WebSockets / Static Files)
   backend:
     build:
       context: ./backend
-    container_name: backend_central
+    container_name: backend_api
+    command: python backend_api.py
     ports:
       - "${BACKEND_PORT}:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+    volumes:
+      - backend_data:/app/data
+    depends_on:
+      - rabbitmq
+    networks:
+      - iot_network
+    restart: always
+
+  # Worker para processamento de status, energia e regras CEP
+  worker-twin:
+    build:
+      context: ./backend
+    container_name: worker_twin
+    command: python worker_twin.py
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+    volumes:
+      - backend_data:/app/data
+    depends_on:
+      - rabbitmq
+    networks:
+      - iot_network
+    restart: always
+
+  # Worker para gravação de alertas e eventos
+  worker-alerts:
+    build:
+      context: ./backend
+    container_name: worker_alerts
+    command: python worker_alerts.py
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+    volumes:
+      - backend_data:/app/data
+    depends_on:
+      - rabbitmq
+    networks:
+      - iot_network
+    restart: always
+
+  # Monitor de integridade e heartbeat periódico
+  service-monitor:
+    build:
+      context: ./backend
+    container_name: service_monitor
+    command: python service_monitor.py
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672

@@ -9,7 +9,7 @@ Este documento serve como histórico de engenharia, explicando as principais cor
 Durante o desenvolvimento inicial, o dashboard conectava-se via WebSocket e o status constava como "Conectado", mas **nenhuma informação de telemetria era exibida na tela**.
 
 ### Investigação Técnica
-1. No arquivo [backend.py](file:///c:/Users/mateus/Documents/projeto_ph/backend/backend.py), o consumidor do RabbitMQ roda em uma thread separada para não bloquear o servidor web.
+1. No arquivo [backend_api.py](file:///c:/Users/mateus/Documents/projeto_ph/backend/backend_api.py) (anteriormente `backend.py`), o consumidor do RabbitMQ roda em uma thread separada para não bloquear o servidor web.
 2. Quando a thread consome uma mensagem, ela precisa avisar o loop do asyncio principal (que gerencia o WebSocket do FastAPI) para enviar o dado aos navegadores ativos.
 3. Isso era feito usando a função `asyncio.run_coroutine_threadsafe(..., fastapi_loop)`.
 4. **O Erro:** A variável `fastapi_loop` era instanciada na thread principal chamando `fastapi_loop = asyncio.get_event_loop()` antes da execução do servidor ASGI Uvicorn:
@@ -46,7 +46,7 @@ Esta alteração sincronizou as threads e fez as telemetrias reaparecerem no Das
 O histórico do laboratório é persistido com timestamps no formato de string ISO8601 (ex: `2026-06-22T01:10:00Z`). Para implementar filtros flexíveis como `10m`, `1h` ou `24h` diretamente na tabela do SQLite, criamos um interpretador dinâmico:
 
 ### O Interpretador Dinâmico (`parse_interval`)
-Em [backend.py:L91-L105](file:///c:/Users/mateus/Documents/projeto_ph/backend/backend.py#L91-L105), a função traduz strings em datas relativas usando offsets em UTC:
+   Em [backend_api.py](file:///c:/Users/mateus/Documents/projeto_ph/backend/backend_api.py), a função traduz strings em datas relativas usando offsets em UTC:
 * `10m` -> `datetime.utcnow() - timedelta(minutes=10)`
 * `1h` -> `datetime.utcnow() - timedelta(hours=1)`
 * `24h` -> `datetime.utcnow() - timedelta(hours=24)`

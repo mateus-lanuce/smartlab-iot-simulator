@@ -64,9 +64,9 @@ A apresentação do projeto exige a execução em no mínimo 2 máquinas de rede
 
 ### Passo 2: Execução na Máquina 1 (Servidora)
 1. Coloque a pasta do projeto na Máquina 1.
-2. No terminal do projeto, inicialize apenas o backend e a mensageria:
+2. No terminal do projeto, inicialize o RabbitMQ e todos os microsserviços do backend central:
    ```bash
-   docker compose up -d backend rabbitmq
+   docker compose up -d backend rabbitmq worker-twin worker-alerts service-monitor
    ```
 3. O Dashboard já poderá ser acessado localmente pelo navegador da Máquina 1 em `http://localhost:8000`.
 

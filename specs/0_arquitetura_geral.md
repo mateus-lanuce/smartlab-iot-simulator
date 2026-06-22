@@ -42,16 +42,21 @@ graph TD
         GW2 -- AMQP:5672 --> RMQ
         GW3 -- AMQP:5672 --> RMQ
 
-        RMQ -- Fila Alertas/Eventos --> BE[Backend Services]
-        BE -- Escreve/Lê --> DB[(SQLite DB)]
-        BE -- Mantém em memória --> DT[Digital Twins Estado]
-        BE -- API REST:8000 --> REST_API[FastAPI Server]
+        RMQ -- alerts_queue --> W_ALERTS[Worker Alertas]
+        RMQ -- status/energy/env --> W_TWIN[Worker Twins]
+        RMQ -- `#` (todos os eventos) --> API_GW[API Gateway / WS]
+        
+        W_ALERTS & W_TWIN & MON[Heartbeat Monitor] -- Shared Volume --> DB[(SQLite DB WAL)]
+        API_GW -- Reads --> DB
+        
+        MON -- Publishes Alerts --> RMQ
+        W_TWIN -- Publishes CEP Alerts --> RMQ
     end
 
     subgraph Presentation_Layer ["Camada de Apresentação"]
         CLI_MQTT[Cliente Real-Time MQTT] <-- Assina tópicos:1883 -- GW1 & GW3
-        WEB_DASH[Painel Administrativo Web] <-- HTTP GET:8000 --> REST_API
-        WEB_DASH <-- WebSockets / MQTT over WebSockets:9001 --> RMQ/Mosquitto
+        WEB_DASH[Painel Administrativo Web] <-- HTTP GET:8000 --> API_GW
+        WEB_DASH <-- WebSockets:8000 --> API_GW
     end
 ```
 
