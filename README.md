@@ -25,20 +25,25 @@ graph TD
     end
 
     subgraph Camada_Mensageria ["3. Mensageria Central"]
-        RMQ[Broker Central RabbitMQ] -- Fila de Status, Energia, Ambiente e Alertas --> BE[Backend Central]
+        RMQ[Broker Central RabbitMQ] -- Fila de Status, Energia, Ambiente --> TW[Twin Worker]
+        RMQ -- Fila de Alertas --> AW[Alerts Worker]
+        RMQ -- Todos os Eventos --> API[API Gateway]
     end
 
-    subgraph Camada_Backend ["4. Backend & Digital Twins"]
-        BE -- Upsert de Estado --> SQLite[(SQLite database.db)]
-        BE -- Detecção de Inatividade --> HB[Heartbeat Monitor]
-        BE -- API REST & WebSockets --> DASH[Dashboard Web / CLI Client]
+    subgraph Camada_Backend ["4. Backend & Digital Twins (Microsserviços)"]
+        TW -- Upsert de Estado --> SQLite[(SQLite database.db WAL)]
+        AW -- Persiste Alertas --> SQLite
+        MON[Heartbeat Monitor] -- Detecção de Inatividade --> SQLite
+        MON -- Alerta Queda Conexão --> RMQ
+        API -- Consulta Estado / REST --> SQLite
+        API -- WebSocket / Broadcast --> DASH[Dashboard Web / CLI Client]
     end
 ```
 
 ### 📁 Estrutura de Diretórios
 ```text
 projeto_ph/
-├── docker-compose.yml              # Orquestração geral de todos os contêineres do sistema
+├── docker-compose.yml              # Orquestração de todos os microsserviços (RabbitMQ, Mosquitto, Gateways, Simuladores, Backend)
 ├── mosquitto.conf                  # Configuração dos brokers MQTT locais dos laboratórios
 ├── requirements.txt                # Dependências globais de desenvolvimento
 ├── README.md                       # Este arquivo de documentação
@@ -62,10 +67,14 @@ projeto_ph/
 │   ├── requirements.txt
 │   └── edge_gateway.py             # Agregação local de dados e buffer SQLite offline
 │
-├── backend/                        # API Central & Digital Twins
+├── backend/                        # Backend Central (Microsserviços)
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   ├── backend.py                  # API FastAPI, Consumidor RabbitMQ, SQLite central e WebSockets
+│   ├── shared_db.py                # Acesso compartilhado ao SQLite em modo WAL com busy_timeout de 15s
+│   ├── backend_api.py              # API Gateway (REST, WebSockets e Dashboard estático)
+│   ├── worker_twin.py              # Twin & Statistics Worker (Consumidor AMQP e CEP rules)
+│   ├── worker_alerts.py            # Alerts Worker (Consumidor AMQP de incidentes)
+│   ├── service_monitor.py          # Heartbeat & Connectivity Monitor (Loop de inatividade)
 │   └── static/                     # Painel Administrativo Web (SPA HTML/CSS/JS)
 │       ├── index.html
 │       ├── style.css

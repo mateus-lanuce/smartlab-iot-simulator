@@ -19,8 +19,9 @@ Para facilitar a navegação e o aprendizado progressivo, a documentação está
    * Resiliência offline e buffer local SQLite com mecanismo de flush ordenado.
 
 3. **[Módulo 3: Backend Central e Gêmeos Digitais (Digital Twins)](file:///c:/Users/mateus/Documents/projeto_ph/docs/3_backend_e_gemeos_digitais.md)**
+   * A nova arquitetura orientada a eventos dividida em **4 microsserviços**.
+   * Estratégia de concorrência com **SQLite WAL (Write-Ahead Logging)** e timeout para evitar bloqueios.
    * Estrutura das filas no RabbitMQ central e garantias de entrega (`basic_ack`).
-   * Schema do banco de dados SQLite central.
    * Lógica de ciclo de vida online/offline dos gêmeos digitais (Heartbeat/Timeout).
    * Correlação Complexa de Eventos (Risco de Colapso Térmico e Desperdício Energético).
 
