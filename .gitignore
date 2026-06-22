@@ -1,0 +1,44 @@
+# --- Arquivos Compilados do Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.venv/
+venv/
+env/
+ENV/
+
+# --- Configurações de IDEs (VS Code, PyCharm, etc.) ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# --- Banco de Dados SQLite & Bancos de Borda ---
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+backend/data/
+edge_gateway/*.db
+
+# --- Logs e Arquivos Temporários ---
+*.log
+logs/
+temp/
+tmp/
+
+# --- Configurações Locais de Ambiente ---
+.env
+
+# --- Arquivos de Sistema (Windows/macOS) ---
+Thumbs.db
+Ehthumbs.db
+Desktop.ini
+.DS_Store
