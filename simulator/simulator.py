@@ -13,6 +13,7 @@ PROTOCOL = os.getenv("PROTOCOL", "MQTT")
 GATEWAY_HOST = os.getenv("GATEWAY_HOST", "localhost")
 GATEWAY_PORT = int(os.getenv("GATEWAY_PORT", "1883"))
 INTERVAL = float(os.getenv("INTERVAL", "5.0"))
+BACKEND_HOST = os.getenv("BACKEND_HOST", "backend")
 
 CURRENT_SCENARIO = "NORMAL"
 ROOM_TEMPERATURE = 22.0
@@ -64,11 +65,11 @@ async def send_data(topic, path, payload):
 
 # Tarefa de polling para buscar cenário do backend central
 async def poll_scenario_task():
-    global CURRENT_SCENARIO
+    global CURRENT_SCENARIO, BACKEND_HOST
     while True:
         try:
             # Busca o cenário atual no Backend Central
-            r = await asyncio.to_thread(requests.get, f"http://backend:8000/api/simulation/scenario/{LAB_ID}", timeout=2.0)
+            r = await asyncio.to_thread(requests.get, f"http://{BACKEND_HOST}:8000/api/simulation/scenario/{LAB_ID}", timeout=2.0)
             if r.status_code == 200:
                 data = r.json()
                 new_scenario = data.get("scenario", "NORMAL")
